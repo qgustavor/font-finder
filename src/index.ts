@@ -67,6 +67,11 @@ export interface ListOptions {
      * Function to call on font loading error. Default: null
      */
     onFontError?: ((path: string, err: Error) => void) | null;
+
+    /**
+     * A list of font paths that should be used instead of system fonts
+     */
+    files?: string[];
 }
 
 /**
@@ -80,7 +85,8 @@ export interface GetOptions {
 }
 
 /**
- * Retrieve metadata for all fonts installed on the system.
+ * Retrieve metadata for all fonts installed on the system,
+ * or a set of fonts if specified
  *
  * @param options Options to configure font retrieval
  */
@@ -89,11 +95,12 @@ export async function list(options?: ListOptions): Promise<FontList> {
         concurrency: 4,
         language: 'en',
         onFontError: null,
+        files: null,
         ...options
     };
 
     // TODO: support woff, woff2, ttc
-    const files = await getSystemFonts({ extensions: ['ttf', 'otf'] });
+    const files = opts.files ?? await getSystemFonts({ extensions: ['ttf', 'otf'] });
 
     // Process each font in parallel, swallowing any errors found along the way.
     const results = await parallelize(
